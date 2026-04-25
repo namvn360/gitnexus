@@ -1,0 +1,33 @@
+services:
+  gitnexus-server:
+    build:
+      context: .
+      dockerfile: Dockerfile.cli
+    image: ${SERVER_IMAGE:-gitnexus-local:latest}
+    container_name: ${SERVER_CONTAINER_NAME:-gitnexus-server}
+    ports:
+      - '${SERVER_HOST_PORT:-4747}:4747'
+    environment:
+      GITNEXUS_AUTO_ANALYZE: ${GITNEXUS_AUTO_ANALYZE:-true}
+    volumes:
+      - gitnexus-data:/data/gitnexus
+      - ../:/workspace:rw
+    command:
+      - sh
+      - -lc
+      - |
+        git config --global --add safe.directory /workspace
+        if [ "$${GITNEXUS_AUTO_ANALYZE}" = "true" ]; then
+          node gitnexus/dist/cli/index.js analyze /workspace --skip-git
+        fi
+        exec node gitnexus/dist/cli/index.js serve --host 0.0.0.0 --port 4747
+    restart: unless-stopped
+    healthcheck:
+      test: ['CMD', 'curl', '-fsS', 'http://localhost:4747/api/heartbeat']
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+volumes:
+  gitnexus-data:

@@ -1,0 +1,21 @@
+{
+  "mcpServers": {
+    "gitnexus": {
+      "type": "stdio",
+      "command": "docker",
+      "args": [
+        "run",
+        "--rm",
+        "-i",
+        "-v",
+        ".:/workspace:ro",
+        "-v",
+        "gitnexus-mcp-data:/data/gitnexus",
+        "ghcr.io/abhigyanpatwari/gitnexus:latest",
+        "sh",
+        "-lc",
+        "node gitnexus/dist/cli/index.js analyze /workspace --skip-git >/dev/null 2>&1; exec node gitnexus/dist/cli/index.js mcp"
+      ]
+    }
+  }
+}
